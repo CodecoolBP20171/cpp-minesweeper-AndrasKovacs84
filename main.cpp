@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ctime>
 #include <cmath>
+#include <climits>
 
 namespace {
     class Minesweeper {
@@ -9,7 +10,7 @@ namespace {
                 : width(width), height(height),
                   table(new char[width * height]),
                   visible_table(new char[width * height]) {
-            //fillTable();
+            //fillTable(); // handled by initGame()
         }
 
         /* In a real implementation there would also be a
@@ -50,7 +51,42 @@ namespace {
         }
 
 
-        void printVerticalDelimiter() const {
+        void printTable(char *table) const {
+            // step 3 goes here
+            std::cout << "\n";
+            printTopBorder();
+            for (int j = 0, row = 1; j < (height*width) ; ++j) {
+                if(0 == j % width) {
+                    std::cout.width(4); std::cout << std::right << row;
+                }
+                std::cout << asciiVertical << " " << *(table + j) << " " ;
+                if(0 == (j+1) % width) {
+                    std::cout << asciiVertical;
+                    std::cout.width(4); std::cout << std::left << row;
+                    std::cout << "\n";
+                    ++row;
+                    if(j+1 == (height * width)) printBottomBorder();
+                    else printHorizontalDelimiter();
+                }
+            }
+        }
+
+        void printTopBorder() const {
+            std::cout << std::string(ROW_NR_COMPENSATION + 1, ' ');
+            for (int j = 1; j <= width ; ++j) {
+                std::cout.width(4); std::cout << std::left << j;
+            }
+            std::cout << "\n";
+            std::cout << std::string(ROW_NR_COMPENSATION, ' ');
+            std::cout << asciiTopLeftCorner;
+            for (int i = 0; i < width; ++i) {
+                std::cout << std::string(COLUMN_WIDTH, asciiHorizontal);
+                if((i+1) % width !=0) std::cout << ascii3wayHorizontalDown;
+            }
+            std::cout << asciiTopRightCorner << std::endl;
+        }
+
+        void printHorizontalDelimiter() const {
             std::cout << std::string(ROW_NR_COMPENSATION, ' ');
             std::cout << ascii3wayVerticalRight;
             for (int i = 0; i < width; ++i) {
@@ -76,60 +112,7 @@ namespace {
             std::cout << "\n";
         }
 
-        void printTable() const {
-            // step 3 goes here
-            std::cout << "\n";
-            printTopBorder();
-            for (int j = 0, row = 1; j < (height*width) ; ++j) {
-                if(0 == j % width) {
-                    std::cout.width(4); std::cout << std::right << row;
-                }
-                std::cout << asciiVertical << " " << *(table + j) << " " ;
-                if(0 == (j+1) % width) {
-                    std::cout << asciiVertical;
-                    std::cout.width(4); std::cout << std::left << row;
-                    std::cout << "\n";
-                    ++row;
-                    if(j+1 == (height * width)) printBottomBorder();
-                    else printVerticalDelimiter();
-                }
-            }
-        }
 
-        void printTopBorder() const {
-            std::cout << std::string(ROW_NR_COMPENSATION + 1, ' ');
-            for (int j = 1; j <= width ; ++j) {
-                std::cout.width(4); std::cout << std::left << j;
-            }
-            std::cout << "\n";
-            std::cout << std::string(ROW_NR_COMPENSATION, ' ');
-            std::cout << asciiTopLeftCorner;
-            for (int i = 0; i < width; ++i) {
-                std::cout << std::string(COLUMN_WIDTH, asciiHorizontal);
-                if((i+1) % width !=0) std::cout << ascii3wayHorizontalDown;
-            }
-            std::cout << asciiTopRightCorner << std::endl;
-        }
-
-
-        void printVisibleTable() const {
-            std::cout << "\n";
-            printTopBorder();
-            for (int j = 0, row = 1; j < (height*width) ; ++j) {
-                if(0 == j % width) {
-                    std::cout.width(4); std::cout << std::right << row;
-                }
-                std::cout << asciiVertical << " " << *(visible_table + j) << " " ;
-                if(0 == (j+1) % width) {
-                    std::cout << asciiVertical;
-                    std::cout.width(4); std::cout << std::left << row;
-                    std::cout << "\n";
-                    ++row;
-                    if(j+1 == (height * width)) printBottomBorder();
-                    else printVerticalDelimiter();
-                }
-            }
-        }
 
         //Doesn't work in CLion, only when running compiled exe outside the IDE. And I know that system() should not be used :)
         void clearScreen() {
@@ -161,11 +144,11 @@ namespace {
         void gameLoop() {
             bool newGame = true;
             while(newGame) {
-                 clearScreen();
+                clearScreen();
                 initGame();
                 while (!isGameOver && !isGameWon) {
                     clearScreen();
-                    printVisibleTable();
+                    printTable(visible_table);
                     isGameOver = handleNextMove(getNextMove());
                     ++nrOfMoves;
                     isGameWon = checkVictoryCondition();
@@ -174,12 +157,12 @@ namespace {
                 (nrOfMoves == 1)  ? moveOrMoves = "move" : moveOrMoves = "moves";
                 if(isGameWon) {
                     clearScreen();
-                    printTable();
+                    printTable(table);
                     std::cout << "\nGame won in " << nrOfMoves << " " << moveOrMoves << " on \"" << chosenDifficulty << "\" difficulty! Congratulations! You get to live, because you didn't step on a mine!\n";
                 } else {
                     clearScreen();
                     *(table + fatalMove) = explodedLandmine;
-                    printTable();
+                    printTable(table);
                     std::cout << "\nAfter " << nrOfMoves << " " << moveOrMoves << ", you stepped on a landmine on \""<< chosenDifficulty <<"\" difficulty and successfully kicked your air addiction...\n";
                 }
                 newGame = isPlayerPlayingAgain();
@@ -189,7 +172,6 @@ namespace {
         std::string getChosenDifficulty() {
             double mineRatio;
             mineRatio = floor((double(totalNrOfMines) / (double(width) * double(height))) * 10);
-            std::cout << "mineRatio: " << mineRatio;
             switch (int(mineRatio)){
                 case 0: return "I have a hard time dealing with defeat";
                 case 1: return "I'm just here for the story";
@@ -212,30 +194,38 @@ namespace {
             size_t input;
             std::cout << "\nPlease enter the desired width of the playing field (2-" << MAX_WIDTH << "):";
             while(!(std::cin >> input) || input < 2 || input > MAX_WIDTH) {
-                std::cout << "input out of range! \n";
+                std::cout << "input invalid! \n";
                 std::cin.clear();
-                std::cin.ignore(100, '\n'); //TODO figue out how much to ignore
+                std::cin.ignore(INT_MAX, '\n');
             }
             this->width = input;
 
             std::cout << "\nPlease enter the desired height of the playing field (2-" << MAX_HEIGHT << "):";
             while(!(std::cin >> input) || input < 2 || input > MAX_WIDTH) {
-                std::cout << "input out of range! \n";
+                std::cout << "input invalid! \n";
                 std::cin.clear();
-                std::cin.ignore(100, '\n'); //TODO figue out how much to ignore
+                std::cin.ignore(INT_MAX, '\n');
             }
             this->height = input;
 
             std::cout << "\nPlease enter the desired number of mines (1-" << height*width-1 << "):";
             while(!(std::cin >> input) || input < 1 || input > (height*width-1)) {
-                std::cout << "input out of range! \n";
+                std::cout << "input invalid! \n";
                 std::cin.clear();
-                std::cin.ignore(100, '\n'); //TODO figue out how much to ignore
+                std::cin.ignore(INT_MAX, '\n');
             }
             this->totalNrOfMines = input;
             fillTable();
             countNeighbours();
             chosenDifficulty = getChosenDifficulty();
+        }
+
+        bool handleNextMove(size_t move) {
+            revealWithNeighbouringZeros(move);
+            if(*(visible_table + move) == '*'){
+                fatalMove = move;
+            }
+            return *(visible_table + move) == '*';
         }
 
     private:
@@ -260,21 +250,25 @@ namespace {
             }
         }
 
-        void revealWithNeighbouringZeros(int move) {
+        void revealWithNeighbouringZeros(size_t move) {
             *(visible_table + move) = *(table + move);
-
             bool isAtRightEdge = (move + 1) % width == 0;
             bool isAtLeftEdge = move % width == 0;
             char * pPosition = table + move;
             char * pVisiblePos = visible_table + move;
             if(*pPosition == '0'){
+                /*
+                 * (move-width) will never evaluate to a negative! When it should, it just reverts to the max value of size_t!
+                 * Therefore even when testing if position is below 0, we need to check only if it's less than the
+                 * max size of our play field.
+                 */
 
                 // check above
-                if((move - width) >= 0 &&
+                if(((move - width) < (height*width)) &&
                     *(pVisiblePos -width) != '0') revealWithNeighbouringZeros(move - width);
 
                 // check above to the right
-                if((move - width + 1) > 0 && !isAtRightEdge &&
+                if((move - width + 1) < (height*width) && !isAtRightEdge &&
                         *(pVisiblePos - width + 1) != '0') revealWithNeighbouringZeros(move - width + 1);
 
                 // check right
@@ -294,41 +288,34 @@ namespace {
                         *(pVisiblePos + width - 1) != '0') revealWithNeighbouringZeros(move + width - 1);
 
                 // check left
-                if((move - 1) >= 0 && !isAtLeftEdge &&
+                if((move - 1) < (height*width) && !isAtLeftEdge &&
                         *(pVisiblePos - 1) != '0') revealWithNeighbouringZeros(move - 1);
 
                 //check above to the left
-                if((move - width - 1) >= 0 && !isAtLeftEdge &&
+                if((move - width - 1) < (height*width) && !isAtLeftEdge &&
                         *(pVisiblePos - width -1) != '0') revealWithNeighbouringZeros(move - width - 1);
             }
         }
 
-        bool handleNextMove(int move) {
-            revealWithNeighbouringZeros(move);
-            if(*(visible_table + move) == '*'){
-                fatalMove = move;
-            }
-            return *(visible_table + move) == '*';
-        }
 
         int getNextMove() {
             bool isMoveValid = false;
-            int target = 0;
-            int input;
+            size_t target = 0;
+            size_t input;
             while(!isMoveValid){
                 std::cout << "\nPlease enter X position of target(1-" << width << "):";
                 while(!(std::cin >> input) || input < 1 || input > width) {
-                    std::cout << "input out of range! \n";
+                    std::cout << "Invalid input! \n";
                     std::cin.clear();
-                    std::cin.ignore(100, '\n'); //TODO figue out how much to ignore
+                    std::cin.ignore(INT_MAX, '\n');
                 }
                 target = (input-1);
 
                 std::cout << "\nPlase enter Y position of target(1-" << height << "):";
                 while(!(std::cin >> input) || input < 1 || input > height) {
-                    std::cout << "input out of range! \n";
+                    std::cout << "Invalid input! \n";
                     std::cin.clear();
-                    std::cin.ignore(100, '\n'); //TODO figue out how much to ignore
+                    std::cin.ignore(INT_MAX, '\n');
                 }
                 target += (input-1) * width;
 
@@ -339,7 +326,7 @@ namespace {
             return target;
         }
 
-
+        // Visual elements for the play field's borders and delimiters.
         const char asciiTopLeftCorner = 201;
         const char asciiTopRightCorner = 187;
         const char asciiBottomLeftCorner = 200;
@@ -352,10 +339,12 @@ namespace {
         const char ascii3wayVerticalRight = 204;
         const char ascii4way = 206;
         const char explodedLandmine = 177;
+
         const int COLUMN_WIDTH = 3;
         const int ROW_NR_COMPENSATION = 4;
-        const int MAX_WIDTH = 30; //display breaks in Clion above 20
-        const int MAX_HEIGHT = 30; //display breaks in Clion above 20
+        const int MAX_WIDTH = 30; //displaying above 20 breaks in Clion
+        const int MAX_HEIGHT = 30; //displaying above 20 breaks in Clion
+
         size_t width, height;
         char *table;
         char *visible_table;
