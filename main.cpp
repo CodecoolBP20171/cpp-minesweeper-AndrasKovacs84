@@ -116,7 +116,8 @@ namespace {
 
         //Doesn't work in CLion, only when running compiled exe outside the IDE. And I know that system() should not be used :)
         void clearScreen() {
-            if (system("CLS")) system("clear");
+            // system("cls");
+            std::cout << "\033[2J\033[1;1H";
         }
 
         bool checkVictoryCondition() {
@@ -327,18 +328,31 @@ namespace {
         }
 
         // Visual elements for the play field's borders and delimiters.
-        const char asciiTopLeftCorner = 201;
-        const char asciiTopRightCorner = 187;
-        const char asciiBottomLeftCorner = 200;
-        const char asciiBootomRightCorner = 188;
-        const char asciiHorizontal = 205;
-        const char asciiVertical = 186;
-        const char ascii3wayHorizontalDown = 203;
-        const char ascii3wayHorizontalUp = 202;
-        const char ascii3wayVerticalLeft = 185;
-        const char ascii3wayVerticalRight = 204;
-        const char ascii4way = 206;
-        const char explodedLandmine = 177;
+        const char asciiTopLeftCorner = '+';
+        const char asciiTopRightCorner = '+';
+        const char asciiBottomLeftCorner = '+';
+        const char asciiBootomRightCorner = '+';
+        const char asciiHorizontal = '-';
+        const char asciiVertical = '|';
+        const char ascii3wayHorizontalDown = '+';
+        const char ascii3wayHorizontalUp = '+';
+        const char ascii3wayVerticalLeft = '+';
+        const char ascii3wayVerticalRight = '+';
+        const char ascii4way = '+';
+        const char explodedLandmine = 'X';
+
+        //const char asciiTopLeftCorner = 201;
+        //const char asciiTopRightCorner = 187;
+        //const char asciiBottomLeftCorner = 200;
+        //const char asciiBootomRightCorner = 188;
+        //const char asciiHorizontal = 205;
+        //const char asciiVertical = 186;
+        //const char ascii3wayHorizontalDown = 203;
+        //const char ascii3wayHorizontalUp = 202;
+        //const char ascii3wayVerticalLeft = 185;
+        //const char ascii3wayVerticalRight = 204;
+        //const char ascii4way = 206;
+        //const char explodedLandmine = 177;
 
         const int COLUMN_WIDTH = 3;
         const int ROW_NR_COMPENSATION = 4;
